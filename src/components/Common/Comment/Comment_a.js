@@ -3,7 +3,7 @@ import RN , {View , Text , StyleSheet , Image} from 'react-native';
 import StarRating from 'react-native-star-rating';
 import { wp } from '../../styles/CustomStyle';
 import PersianText from '../../Common/PersianText/PersianText'
-import HtmlText from "react-native-html-to-text";
+
 
 function mapStringToComponent(stringToRender) {
     const parseResult = stringToRender.match(/<([a-z]*)>(.*)<\/[a-z]*>/i);
