@@ -1,0 +1,1 @@
+export const ISLOGIN_UPDATE = 'islogin_update';
