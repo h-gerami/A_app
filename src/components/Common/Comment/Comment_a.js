@@ -4,7 +4,6 @@ import StarRating from 'react-native-star-rating';
 import { wp } from '../../styles/CustomStyle';
 import PersianText from '../../Common/PersianText/PersianText'
 
-
 function mapStringToComponent(stringToRender) {
     const parseResult = stringToRender.match(/<([a-z]*)>(.*)<\/[a-z]*>/i);
 
@@ -32,8 +31,6 @@ const Comment_a = (props) => {
                     <Text style = {styles.auternamestyle}>{props.author_name}</Text>
                     <Text style = {styles.sent_date}><PersianText>{props.sent_date}</PersianText></Text>
                     <Text style = {styles.sent_date}>{props.body}</Text>
-                    {/* <HtmlText style = {styles.body} html={props.body}></HtmlText> */}
-                    {/* {component} */}
                 </View>
             </View>
             <View style = {styles.starwrapper}>
