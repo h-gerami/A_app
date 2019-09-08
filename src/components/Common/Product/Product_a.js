@@ -1,6 +1,6 @@
 import React , {Component} from 'react';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {View , Text ,Image , TouchableOpacity , StyleSheet} from 'react-native';
+import {View , Text ,Image , TouchableOpacity , StyleSheet , Animated} from 'react-native';
 import PersianText from '../PersianText/PersianText'
 import { wp } from '../../styles/CustomStyle';
 const latinToPersianMap = ['۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹', '۰'];
@@ -9,20 +9,37 @@ class Product_a extends Component {
     constructor(props){
         super(props);
         this.state = {
-            number: 1 ,
+            number: 0 ,
+            plussWrapper: new Animated.Value(0),
         }
     }
         onIncreaseNumberClick = () => {
-            this.setState({number: this.state.number + 1})
+            if (this.state.number === 0){
+                this.setState({number: this.state.number + 1})
+                Animated.timing(this.state.plussWrapper , {
+                    toValue: 1,
+                    duration:500,
+                    useNativeDriver: true
+                  }).start();
+            } else {
+                this.setState({number: this.state.number + 1})
+            }
+            
         }
 
      onDecreaseNumberClick = () => {
         if (this.state.number == 1) {
+            this.setState({number: this.state.number - 1})
+            Animated.timing(this.state.plussWrapper , {
+                toValue: 0,
+                duration:500,
+                useNativeDriver: true
+              }).start();
         } else {
             this.setState({number: this.state.number - 1})
         }
      }
-     ChangeToPersion = (number) => {
+     ChangeToPersion = (number) => { 
         number = number.toString();
         for (let i = 0; i < 10; i++) {
             number = number.replace(latinNumbers[i], latinToPersianMap[i]);
@@ -46,22 +63,35 @@ class Product_a extends Component {
                     <Text style = {styles.itemnewPrice}><PersianText>{this.props.productNewprice}</PersianText></Text>
                     {this.props.productoldprice ? <Text style = {styles.itemoldPrice}><PersianText>{this.props.productoldprice}</PersianText></Text> : null}
                 </View>
-                <View style = {styles.minandplusWrapper}>
-                        <TouchableOpacity activeOpacity = {0.8} style = {styles.Motherpluswrapper} onPress = {() =>  this.onIncreaseNumberClick()}>
+
+                <View style = {[styles.minandplusWrapper]}>
+                    <Animated.View style = {[styles.Motherpluswrapper , {transform:[{translateX:-wp(8.5)}]} , {transform:[{translateX:this.state.plussWrapper.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [-wp(8.5) , 0]
+                    })}]}]}>
+                        <TouchableOpacity activeOpacity = {0.8} onPress = {() =>  this.onIncreaseNumberClick()}>
                             <View style = {styles.pluswrapper} >
                                 <Icon color = 'white' size = {wp(4)} name = 'plus'/>
                             </View>
                         </TouchableOpacity>
-                        <View style = {styles.numberwrapper}>
+                        </Animated.View>
+                        <Animated.View style = {[styles.numberwrapper , {opacity:0} , {opacity:this.state.plussWrapper}]}>
                             <Text style = {styles.numberstyle}>{this.ChangeToPersion(this.state.number)}</Text>
+                        </Animated.View>
+
+                        <Animated.View style = {[styles.Motherminuswrapper  ,{opacity:0} , {opacity:this.state.plussWrapper} , {transform:[{translateX:wp(8.5)}]} , {transform:[{translateX:this.state.plussWrapper.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [wp(8.5) , 0]
+                    })}]} ]}>
+                            <TouchableOpacity  activeOpacity = {0.8} onPress = {() =>  this.onDecreaseNumberClick()}>
+                                <View style = {styles.minuswrapper}>
+                                    <Icon color = 'white' size = {wp(4)} name = 'minus'/>
+                                </View>
+                            </TouchableOpacity>
+                        </Animated.View>
+
                         </View>
-                        <TouchableOpacity activeOpacity = {0.8} style = {styles.Motherminuswrapper} onPress = {() =>  this.onDecreaseNumberClick()}>
-                            <View style = {styles.minuswrapper}>
-                                <Icon color = 'white' size = {wp(4)} name = 'minus'/>
-                            </View>
-                        </TouchableOpacity>
-                </View>
-                <View style = {styles.twofunction}>
+                {/* <View style = {styles.twofunction}>
                     <TouchableOpacity  style = {{flexDirection:'row' ,position:'absolute' , left:wp(0)}}>
                         <View style = {styles.twofunctionIconwrapper}>
                             <Image style = {styles.iconimage} source = {require('../../../../assets/images/icon/cart.png')} />
@@ -74,7 +104,7 @@ class Product_a extends Component {
                         <Image style = {styles.iconimage} source = {require('../../../../assets/images/icon/shoppingpattern.png')} />
                         </View>
                     </TouchableOpacity>
-                </View>
+                </View> */}
             </View>
         );
     }
@@ -140,14 +170,14 @@ const styles = StyleSheet.create({
         right:0,
         justifyContent:"center",
         alignItems:'center',
-        width:wp(8),
-        height:wp(8),
-        borderTopRightRadius:wp(2),
-        borderBottomLeftRadius:wp(2)
+        width:wp(6.5),
+        height:wp(6.5),
+        borderTopRightRadius:wp(1),
+        borderBottomLeftRadius:wp(1)
     },
     discounttext:{
         color:'white',
-        fontSize:wp(2.5),
+        fontSize:wp(2),
         fontFamily:'IRANSansMobile_Medium',
     },
     minandplusWrapper:{
@@ -206,8 +236,7 @@ const styles = StyleSheet.create({
         backgroundColor:'transparent',
         position:'relative',
         left:wp(5),
-        zIndex:9,
-        position:'relative',
+        zIndex:19,
     },
     pluswrapper:{
        
@@ -218,7 +247,7 @@ const styles = StyleSheet.create({
         borderRadius:100,
         backgroundColor:'#5cb85c',
         elevation: 2,
-        zIndex:9,
+        zIndex:19,
         position:'relative',
     },
     container:{
@@ -271,8 +300,8 @@ const styles = StyleSheet.create({
         color : "#4c4c4c",
         fontSize:wp(2),
         position:'absolute',
-        right:wp(10),
-        top:-wp(4),
+        right:wp(3),
+        top:-wp(3),
         textDecorationLine: 'line-through',
         textDecorationStyle: 'solid',
     },

@@ -24,6 +24,7 @@ const styles = StyleSheet.create({
         flex:1 ,
         backgroundColor:'white',
         padding:wp(2),
+        paddingBottom:0,
         justifyContent:'center',
         // alignItems:'flex-start'
 
@@ -32,7 +33,7 @@ const styles = StyleSheet.create({
         paddingBottom:wp(10),
         backgroundColor:'white',
         paddingVertical:wp(2),
-        marginBottom:wp(3),
+        marginBottom:wp(1),
         justifyContent:'center',
         alignItems:'center',
         shadowOpacity: 0.3,

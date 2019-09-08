@@ -3,48 +3,41 @@ import RN , {View , Text , StyleSheet , Image} from 'react-native';
 import StarRating from 'react-native-star-rating';
 import { wp } from '../../styles/CustomStyle';
 import PersianText from '../../Common/PersianText/PersianText'
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-function mapStringToComponent(stringToRender) {
-    const parseResult = stringToRender.match(/<([a-z]*)>(.*)<\/[a-z]*>/i);
 
-    if (parseResult !== null) {
-      const [, compName, innerText] = parseResult;
-
-      return React.createElement(
-        RN[compName],
-        null, // here may be an object with attributes if your node has any
-        innerText,
-      );
-    }
-
-    return null;
-}
 const Comment_a = (props) => {
-    const component = mapStringToComponent(props.body);
     return(
-        <View style = {styles.container}>
-            <View style = {styles.rightpart}>
-                <View style = {styles.imagewrapper}>
-                    <Image style = {styles.image} source = {require('../../../../assets/images/sample/hossein.jpeg')} />
-                </View>
-                <View style = {styles.infowrapper}>
+        <View style = {styles.container}  key={props.key2}>
+            <View style = {[styles.rightpart , {flex:1}]}>
+                <View style = {[styles.imagewrapper ,  {flex:2}]}>
+                    {/* <Image style = {styles.image} source = {require('../../../../assets/images/sample/hossein.jpeg')} /> */}
                     <Text style = {styles.auternamestyle}>{props.author_name}</Text>
-                    <Text style = {styles.sent_date}><PersianText>{props.sent_date}</PersianText></Text>
-                    <Text style = {styles.sent_date}>{props.body}</Text>
+                    <View style = {{flexDirection:'row'}}>
+                    <Icon name = "clock-outline" size = {wp(4)}/>
+                        <Text style = {styles.sent_date}><PersianText>{props.sent_date}</PersianText></Text>
+                    </View>
+                    
                 </View>
-            </View>
-            <View style = {styles.starwrapper}>
-            <StarRating
+                <View style = {[styles.infowrapper , {flex:5}]}>
+                
+                <Text style = {styles.product_name}><PersianText>{props.product_name.substring(0, 30) + (props.product_name.length > 30 ? '...' : '')}</PersianText></Text>
+                    <StarRating 
                         emptyStarColor = "#ccc"
                         disabled={true}
                         maxStars={5}
-                        rating={props.rating}
+                        rating={props.rating} 
                         emptyStar={'star-outline'}
                         fullStar={require('../../../../assets/images/icon/star.png')}
                         iconSet={'MaterialCommunityIcons'}
                         starSize = {wp(5)}
                         
                     />
+                     <Text style = {styles.sent_date}><PersianText>{props.body}</PersianText></Text>
+                </View>
+            </View>
+            <View style = {styles.starwrapper}>
+            
             </View>
         </View>
     );
@@ -53,13 +46,18 @@ export {Comment_a};
 const styles = StyleSheet.create ({
     auternamestyle:{
         color:'#202020',
-        fontSize:wp(3),
+        fontSize:wp(3.5),
         fontFamily:'IRANSansMobile_Bold',
     },
     sent_date:{
         color:'#939393',
         fontSize:wp(3),
         fontFamily:'IRANSansMobile_Medium',
+    },
+    product_name:{
+        color:'#999993',
+        fontSize:wp(3.5),
+        fontFamily:'IRANSansMobile_Bold',
     },
     body:{
         color:'#939393',
@@ -75,33 +73,29 @@ const styles = StyleSheet.create ({
     },
     container:{
         flexDirection:'row',
-        alignSelf:'stretch',
-        justifyContent:'space-between',
+        // alignSelf:'stretch',
+        // justifyContent:'space-between',
+        flex:1,
         alignItems:'center',
-        marginBottom:wp(3),
+        marginBottom:wp(4),
         position:'relative'
     },
     imagewrapper:{
         alignSelf:'flex-start',
-        borderRadius:200,
-        borderWidth:1,
-        borderColor:'#a8a8a8',
-        width:wp(20),
-        height:wp(20),
+        alignItems:'flex-start'
     },
     infowrapper:{
-        alignSelf:'flex-start',
         marginLeft:wp(2),
-        justifyContent:'center',
+        alignSelf:'stretch',
+        textAlign:'right',
+        alignItems:'flex-start'
     },
     starwrapper:{
         flexDirection:'row' ,
         justifyContent:'center',
         alignItems:'center',
         alignSelf:'flex-start',
-        position:'absolute',
-        top:0,
-        right:wp(5)
+        
     },
     image:{
         width:'100%',

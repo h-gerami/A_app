@@ -1,59 +1,58 @@
 import React , {Component} from 'react';
-import {View , Text , StyleSheet , SafeAreaView  , Image , ScrollView , FlatList} from 'react-native'
+import {View , Text , StyleSheet , SafeAreaView   , Image , ScrollView , FlatList , ActivityIndicator} from 'react-native'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {ALLEY_API , ALLEY_ADDRESS}  from '../../src/components/Global/Global'
-import {ALLEY_SPINNER , HomeBannerSlide , ContainerWithTitle , CatIconName , Comment_a} from '../components/Common';
+import {ALLEY_SPINNER , HomeBannerSlide , ContainerWithTitle , CatIconName , Comment_a , Spinner} from '../components/Common';
 import Carousel , {Pagination} from 'react-native-snap-carousel';
-import { wp } from '../components/styles/CustomStyle';
+import { wp, hp } from '../components/styles/CustomStyle';
 import {Products} from '../components/Global/Statics'
 import Product_a from '../components/Common/Product/Product_a'
-const regex = /(<([^>]+)>)/ig;
+const isCloseToBottom = ({layoutMeasurement, contentOffset, contentSize}) => {
+    const paddingToBottom = 20;
+    return layoutMeasurement.height + contentOffset.y >=
+      contentSize.height - paddingToBottom;
+  };
 class Home extends Component {
     constructor(props) {
         super(props);
+        this.page = 1;
         this.state = {
+            commentsLoading:false,
             loading :1,
             loadingComment:1,
             comments:[],
             sliders : [],
-            activeSlide: 0
+            activeSlide: 0,
+            commentsnumber:0
         }
     }
-    componentWillMount = () => {
-        this.GetSlider();
-        this.GetComments();
+    componentWillMount(){
+        this.GetHomeSlide_Comments();
      }
 
-     GetSlider = () => {
-        fetch(ALLEY_API + 'slideshow/slides', {
+     GetHomeSlide_Comments = () => {
+        const bodyObj = {
+            comment_limit: 10,
+            comment_offset: 1
+          }
+        fetch(ALLEY_API + 'home/get_home', {
             method: 'POST',
             headers: null,
-            body: null,
+            body:JSON.stringify(bodyObj)
             })
             .then((response) => response.json())
             .then((responseJson) => {
-                //alert(responseJson.status);
-                this.setState({loading: 0 , sliders:responseJson.response})
-            })
-            .catch((error) => {
-            console.error(error);
-            });
-     }
-     GetComments = () => {
-        fetch(ALLEY_API + 'product/2/comment', {
-            method: 'POST',
-            headers: null,
-            body: null,
-            })
-            .then((response) => response.json())
-            .then((responseJson) => {
-                this.setState({loadingComment: 0 , comments:responseJson.response})
+                this.setState({loading: 0 , sliders:responseJson.response.slides ,
+                    loadingComment: 0 , comments:responseJson.response.comments.comment_content,
+                    commentsnumber: responseJson.response.comments.count})
             })
             .catch((error) => {
             console.error(error);
             });
      }
 
+     
+ 
      
     _renderSlide({item,index}){
         return (
@@ -82,13 +81,63 @@ class Home extends Component {
             // body = {item.body.replace(regex, '').substring(0, 30) + (item.body.length > 30 ? '...' : '')}
             // body = {item.body.replace(/<p>/g, '').replace(/)}
             body = {item.body}
+            product_name = {item.product_name}
             rating = {item.rating}
         />
       );
+      renderFooter = () => {
+        //it will show indicator at the bottom of the list when data is loading otherwise it returns null
+        // if (this.state.commentsnumber === 0 ) return null;
+         if (!(!this.state.commentsLoading &&  (!(this.state.commentsnumber < 10)))) return null;
+         return (
+            <Spinner/>
+         );
+       };
+       Get_Comments = (page) => {
+        this.setState({ commentsLoading: true})
+        let Obj = {
+            limit: 10,
+            offset: page
+          }
+        fetch(ALLEY_API + 'home/product_comment', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body:JSON.stringify(Obj)
+            })
+            .then((response) => response.json())
+            .then((responseJson) => {
+                let listData = this.state.comments;
+                let data = listData.concat(responseJson.response.comments)  //concate list with response
+                this.setState({ commentsLoading: false, comments: data , commentsnumber: responseJson.response.count })
+            })
+            .catch((error) => {
+            console.error(error);
+            });
+     }
+       handleLoadMore = () => {
+           
+        if (!this.state.commentsLoading &&  (!(this.state.commentsnumber < 10))  ) {
+            this.page = this.page + 1; // increase page by 1
+            this.setState({page : this.state.page + 1} , function() {
+                this.Get_Comments(this.page);
+            })
+          }
+      };
      
     render() {
         return(
-            <ScrollView >
+            <View>
+                 <ScrollView
+    onScroll={({nativeEvent}) => {
+      if (isCloseToBottom(nativeEvent)) {
+        this.handleLoadMore()
+      }
+    }}
+    scrollEventThrottle={400}
+  >
             {this.state.loading === 1 ? <ALLEY_SPINNER/> : 
             <SafeAreaView style={styles.sliderContainer}>
                 <View style = {styles.sliderContainerchild}>
@@ -97,7 +146,7 @@ class Home extends Component {
                     enableMomentum
                     // autoplayDelay={500}
                     ref={ref => this.carousel = ref}
-                    data={this.state.sliders.slides}
+                    data={this.state.sliders.slide_content}
                     sliderWidth={wp(100)}
                     
                     itemWidth={wp(100)}
@@ -176,14 +225,16 @@ class Home extends Component {
                 ButtonTitle = "همه"
                 onButtonClick = {() => alert(3)}
             >
-            
+            <View style = {{flex:1}}>
             <FlatList
             style = {styles.margintop3}
                 horizontal
+                showsHorizontalScrollIndicator={false}
                 data={Products}
                 keyExtractor={(item) => item.id}
                 renderItem={this._renderLastProduct}
             />
+            </View>
             </ContainerWithTitle>
             <ContainerWithTitle
                 Title = "آخرین محصولات"
@@ -194,6 +245,7 @@ class Home extends Component {
             <FlatList
             style = {styles.margintop3}
                 horizontal
+                showsHorizontalScrollIndicator={false}
                 data={Products}
                 keyExtractor={(item) => item.id}
                 renderItem={this._renderLastProduct}
@@ -203,14 +255,25 @@ class Home extends Component {
             
                 Title = "نظرات کاربران"
             >
-                {this.state.loadingComment === 1 ? <ALLEY_SPINNER/> : <FlatList
-                    style = {styles.margintop3}
-                    data={this.state.comments.comments}
+            
+                {this.state.loadingComment === 1 ? <ALLEY_SPINNER/> : 
+                 
+                        <FlatList
+                        scrollEnabled = {false}
+                    style = {[styles.margintop3]}
+                    data={this.state.comments}
                     keyExtractor={(item) => item.id.toString()}
                     renderItem={this._renderComment}
-                />}
+                    ListFooterComponent={this.renderFooter.bind(this)}
+                    // onEndReachedThreshold={0.4}
+                    // onEndReached={this.handleLoadMore.bind(this)}
+                />
+                    
+               }
+            
             </ContainerWithTitle>
             </ScrollView>
+            </View>
         );
     }
 }
@@ -224,7 +287,7 @@ const styles = StyleSheet.create({
         marginBottom:wp(2)
     },
     sliderContainer:{
-        marginVertical:wp(3),
+        marginVertical:wp(0.5),
         
     },
     sliderContainerchild:{
